@@ -41,3 +41,50 @@ server.route({
         });
     }
 });
+
+server.route({
+    method: 'PUT',
+    path: '/{path*}', 
+    handler: function (request, reply) {
+        let path = request.params.path;
+        let data = request.payload;
+        File.createFile(path, data, function(err){
+            if (err){
+                reply(err.message);
+            }else{
+                reply('created');
+            }
+        });
+    }
+});
+
+server.route({
+    method: 'POST',
+    path: '/{path*}', 
+    handler: function (request, reply) {
+        let path = request.params.path;
+        let data = request.payload;
+        File.replaceFile(path, data, function(err){
+            if (err){
+                reply(err.message);
+            }else{
+                reply('updated');
+            }
+        });
+    }
+});
+
+server.route({
+    method: 'DELETE',
+    path: '/{path*}', 
+    handler: function (request, reply) {
+        let path = request.params.path;
+        File.remove(path, function(err){
+            if (err){
+                reply(err.message);
+            }else{
+                reply('deleted');
+            }
+        });
+    }
+});

@@ -55,6 +55,23 @@ exports.createFile = function(path, data, callback){
     });
 };
 
+exports.replaceFile = function(path, data, callback){
+    fs.exists(path, function(exists) { 
+        if (!exists) { 
+            callback(new Error(`${path} does not exist`));
+            return;
+        }
+        fs.truncate(path, 0, function(){
+            let stream = fs.createWriteStream(path);
+                stream.once('open', function(fd) {
+                stream.write(data);
+                stream.end();
+                callback(null);
+            });
+        });
+    });
+};
+
 exports.remove = function(path, callback){
     fs.exists(path, function(exists) { 
         if (!exists) { 
