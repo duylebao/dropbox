@@ -1,6 +1,7 @@
 let fs = require('fs');
 let archiver = require('archiver');
 let rimraf = require('rimraf');
+let mime = require('mime');
 
 exports.mkdir = function(dir){
     fs.mkdir(dir, function(err){
@@ -74,4 +75,18 @@ exports.readFile = function(path, callback){
         }
         callback(null, data);
     });
-}
+};
+
+exports.fileInfo = function(path, callback){
+    fs.stat(path, function(err, stat) {
+        if(err) {
+            callback(err);
+            return;
+        }
+        let mtype = mime.lookup(path);    
+        callback(null, {
+            "size" : stat.size,
+            "mime" : mtype
+        });    
+    });
+};
