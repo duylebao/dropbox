@@ -2,37 +2,49 @@ let fs = require('fs');
 let archiver = require('archiver');
 let rimraf = require('rimraf');
 let mime = require('mime');
+let path = require('path');
+let {dir} = require('yargs')
+            .default('dir', __dirname)
+            .argv;
 
-exports.mkdir = function(dir){
-    fs.mkdir(dir, function(err){
-        if (err){
-            console.log(err);
+exports.mkdir = function(p, callback){
+    let filePath = path.join(dir, p);
+    fs.exists(filePath, function(exists) { 
+        if (exists) { 
+            callback(new Error(`${p} already exist`));
+            return;
         }
-        console.log('creating ' + dir);
+        fs.mkdir(path.join(dir, p), function(err){
+            if (err){
+                callback(err.message);
+            }else{
+                callback(null);
+            }
+        });
     });
 };
 
-exports.listFiles = function(dir, callback){
-    fs.readdir(dir, function(err, files){
+exports.listFiles = function(p, callback){
+    fs.readdir(path.join(dir, p), function(err, files){
         if (err){
-            console.log('cannot read dir: ' + err);
+            callback(err.message);
         }else{
             let result = [];
             files.forEach( function(file){
-                if (!fs.statSync(dir+'/'+file).isDirectory()){
+                if (!fs.statSync( path.join(p, file)).isDirectory()){
                     result = result.concat(file);
                 }
             });
-            callback(result);
+            callback(null, JSON.stringify(result));
         }
     });
 };
 
-exports.createArchive = function(dir, format, output, callback){
+exports.createArchive = function(p, format, output, callback){
     let archive = archiver(format);
     archive.pipe(output);
     archive.bulk([
-        { expand: true, cwd: dir, src: ['**'], dest: 'source'}
+        { expand: true, cwd: path.join(dir, p), src: ['**'], dest: 'source'}
     ]);
     archive.on('error', function(err){
         callback(err);
@@ -40,70 +52,89 @@ exports.createArchive = function(dir, format, output, callback){
     archive.finalize();
 };
 
-exports.createFile = function(path, data, callback){
-    fs.exists(path, function(exists) { 
-        if (exists) { 
-            callback(new Error(`${path} already exist`));
-            return;
-        }
-        let stream = fs.createWriteStream(path);
-        stream.once('open', function(fd) {
-            stream.write(data);
-            stream.end();
-        });
-        callback(null);
-    });
-};
-
-exports.replaceFile = function(path, data, callback){
-    fs.exists(path, function(exists) { 
-        if (!exists) { 
-            callback(new Error(`${path} does not exist`));
-            return;
-        }
-        fs.truncate(path, 0, function(){
-            let stream = fs.createWriteStream(path);
-                stream.once('open', function(fd) {
+exports.create = function(p, data, callback){
+    let filePath = path.join(dir, p);
+    if (isDirPath(filePath)){
+        exports.mkdir(p, callback);
+    }else{
+        fs.exists(filePath, function(exists) { 
+            if (exists) { 
+                callback(new Error(`${p} already exist`));
+                return;
+            }
+            let stream = fs.createWriteStream(filePath);
+            stream.once('open', function(fd) {
                 stream.write(data);
                 stream.end();
-                callback(null);
+            });
+            callback(null);
+        });
+    }
+};
+
+exports.replaceFile = function(p, data, callback){
+    let filePath = path.join(dir, p);
+    if (isDirPath(filePath)){
+        callback(new Error('not allowed'));
+    }else{
+        fs.exists(filePath, function(exists) { 
+            if (!exists) { 
+                callback(new Error(`${p} does not exist`));
+                return;
+            }
+            fs.truncate(filePath, 0, function(){
+                let stream = fs.createWriteStream(filePath);
+                    stream.once('open', function(fd) {
+                    stream.write(data);
+                    stream.end();
+                    callback(null);
+                });
             });
         });
-    });
+    }
 };
 
-exports.remove = function(path, callback){
-    fs.exists(path, function(exists) { 
+exports.remove = function(p, callback){
+    let filePath = path.join(dir, p);
+    fs.exists(filePath, function(exists) { 
         if (!exists) { 
-            callback(new Error(`${path} does not exist`));
+            callback(new Error(`${p} does not exist`));
             return;
         }
-        rimraf(path, function(err){
+        rimraf(filePath, function(err){
             callback(err);
         });
     });
 };
 
-exports.readFile = function(path, callback){
-    fs.readFile(path, function (err,data) {
-        if (err) {
-            callback(err);
-            return;
-        }
-        callback(null, data);
-    });
+exports.read = function(p, callback){
+    if (isDirPath(p)){
+        exports.listFiles(p, callback);
+    }else{
+        fs.readFile(path.join(dir, p), function (err,data) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            callback(null, data);
+        });
+    }
 };
 
-exports.fileInfo = function(path, callback){
-    fs.stat(path, function(err, stat) {
+exports.fileInfo = function(p, callback){
+    fs.stat(path.join(dir, p), function(err, stat) {
         if(err) {
             callback(err);
             return;
         }
-        let mtype = mime.lookup(path);    
+        let mtype = mime.lookup(path.join(dir,p));    
         callback(null, {
             "size" : stat.size,
             "mime" : mtype
         });    
     });
 };
+
+function isDirPath(p){
+    return p.indexOf('/', p.length - p.length) !== -1;
+}

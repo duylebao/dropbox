@@ -1,5 +1,6 @@
 let Hapi = require('hapi');
 let File = require( './file');
+let Stream = require('stream').Writable();
 
 let server = new Hapi.Server();
 server.connection({ 
@@ -30,15 +31,20 @@ server.route({
             });
             return;
         }     
-        File.readFile(path, function(err, data){
-            if (!err){
-                console.log(`loading file ${path}`);
-                reply(data);
-            }else{
-                console.log(`could not load file ${path}: ${err}`);
-                reply(`${path} does not exist`);
-            }
-        });
+        let accept = request.headers['accept'] === 'application/x-gtar';
+        if (accept){
+            reply('need to implement accept zip file');
+        }else{
+            File.read(path, function(err, data){
+                if (!err){
+                    console.log(`loading file ${path}`);
+                    reply(data);
+                }else{
+                    console.log(`could not load file ${path}: ${err}`);
+                    reply(`${path} does not exist`);
+                }
+            });
+        }
     }
 });
 
@@ -48,9 +54,9 @@ server.route({
     handler: function (request, reply) {
         let path = request.params.path;
         let data = request.payload;
-        File.createFile(path, data, function(err){
+        File.create(path, data, function(err){
             if (err){
-                reply(err.message);
+                reply(err.message).code(405);
             }else{
                 reply('created');
             }
@@ -66,7 +72,7 @@ server.route({
         let data = request.payload;
         File.replaceFile(path, data, function(err){
             if (err){
-                reply(err.message);
+                reply(err.message).code(405);
             }else{
                 reply('updated');
             }
