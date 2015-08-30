@@ -1,8 +1,28 @@
 let Hapi = require('hapi');
 let File = require( './file');
 let Stream = require('stream').Writable();
-
+let net = require('net');
+let JsonSocket = require('json-socket');
+let tcpServer = net.createServer();
+let chokidar = require('chokidar');
 let server = new Hapi.Server();
+
+tcpServer.listen(8001);
+tcpServer.on('connection', function(socket) {
+    socket = new JsonSocket(socket);
+    chokidar.watch(File.filePath(), {ignored: /[\/\\]\./})
+        .on('all', (event, path) => {
+            let isDir = event.indexOf("Dir") != -1;
+            let action = event.replace('Dir','').replace('unlink','delete');
+            let message = {
+                "action": action,
+                "path": path.replace(File.filePath(),''),
+                "type": isDir ? 'dir' : 'file'
+            };
+            socket.sendMessage( message );
+        })
+});
+
 server.connection({ 
     host: 'localhost', 
     port: 8000 

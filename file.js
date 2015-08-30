@@ -54,7 +54,7 @@ exports.createArchive = function(p, format, callback){
 
 exports.create = function(p, data, callback){
     let filePath = path.join(dir, p);
-    if (isDirPath(filePath)){
+    if (isDirPath(filePath)){     
         exports.mkdir(p, callback);
     }else{
         fs.exists(filePath, function(exists) { 
@@ -135,6 +135,10 @@ exports.fileInfo = function(p, callback){
     });
 };
 
+exports.filePath = function(){
+    return dir;
+};
+
 function isDirPath(p){
-    return p.indexOf('/', p.length - p.length) !== -1;
+    return p.indexOf('/', p.length - 1) !== -1;
 }
