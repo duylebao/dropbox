@@ -25,18 +25,16 @@ exports.mkdir = function(p, callback){
 };
 
 exports.listFiles = function(p, callback){
-    fs.readdir(path.join(dir, p), function(err, files){
-        if (err){
-            callback(err.message);
-        }else{
-            let result = [];
-            files.forEach( function(file){
-                if (!fs.statSync( path.join(p, file)).isDirectory()){
-                    result = result.concat(file);
-                }
-            });
-            callback(null, JSON.stringify(result));
+    fs.readdir(p, function (err, files) {
+        if (err) {
+            throw err;
         }
+        callback(null, 
+            files.map(function (file) {
+                return file;
+            }).filter(function (file) {
+                return fs.statSync(path.join(p, file)).isFile();
+            }));
     });
 };
 

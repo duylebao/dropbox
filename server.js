@@ -38,6 +38,9 @@ server.route({
     handler: function (request, reply) {
         let method = request.method;
         let path = request.params.path;
+        if (typeof path === 'undefined'){
+            path = '/';
+        }  
         if (method === 'head'){
             File.fileInfo(path, function(err, info){
                 if (err){
@@ -52,8 +55,8 @@ server.route({
             return;
         }     
         let accept = request.headers['accept'] === 'application/x-gtar';
-        if (accept){
-            File.createArchive(path, 'zip', function(err, data){
+        if (accept){       
+            File.createArchive(path, 'tar', function(err, data){
                 if (err){
                     reply(err.message);
                 }else{

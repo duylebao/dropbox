@@ -4,7 +4,7 @@ let request = require('request');
 let port = 8001;
 let host = '127.0.0.1';
 let socket = new JsonSocket(new net.Socket());
-
+let fs = require('fs');
 let File = require( '../file');
 let path = require('path');
 let {dir} = require('yargs')
@@ -14,6 +14,15 @@ let {dir} = require('yargs')
 socket.connect(port, host);
 socket.on('connect', function() {
     console.log('client connected');
+
+    let options = {
+        url: 'http://localhost:8000/',
+        headers: {'Accept': 'application/x-gtar'}
+    }
+    var destination = fs.createWriteStream('./server.tar');
+
+    request(options, 'http://localhost:8000/')
+        .pipe(destination);
 
     socket.on('message', function(message) {
         if (message.type === 'dir'){
@@ -41,10 +50,6 @@ socket.on('connect', function() {
                 request({
                     url: url,
                     method: 'GET',
-                    // headers: { //We can define headers too
-                    //     'Content-Type': 'MyContentType',
-                    //     'Custom-Header': 'Custom Value'
-                    // }
                 }, function(error, response, body){
                     if(error) {
                         console.log(error);
