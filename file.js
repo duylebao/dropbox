@@ -40,9 +40,8 @@ exports.listFiles = function(p, callback){
     });
 };
 
-exports.createArchive = function(p, format, output, callback){
+exports.createArchive = function(p, format, callback){
     let archive = archiver(format);
-    archive.pipe(output);
     archive.bulk([
         { expand: true, cwd: path.join(dir, p), src: ['**'], dest: 'source'}
     ]);
@@ -50,6 +49,7 @@ exports.createArchive = function(p, format, output, callback){
         callback(err);
     });
     archive.finalize();
+    callback(null, archive);
 };
 
 exports.create = function(p, data, callback){

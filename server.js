@@ -33,7 +33,13 @@ server.route({
         }     
         let accept = request.headers['accept'] === 'application/x-gtar';
         if (accept){
-            reply('need to implement accept zip file');
+            File.createArchive(path, 'zip', function(err, data){
+                if (err){
+                    reply(err.message);
+                }else{
+                    reply(data);
+                }
+            });
         }else{
             File.read(path, function(err, data){
                 if (!err){
