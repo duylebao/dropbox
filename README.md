@@ -11,6 +11,12 @@ REST server.
 
 ```
 
+#### Time spent
+
+```
+ 15 hours
+```
+
 #### Starting the server (both Hapi: port 8000 and TCP server: port 8001)
 
 ```
