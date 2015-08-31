@@ -10,18 +10,19 @@ let path = require('path');
 let {dir} = require('yargs')
             .default('dir', __dirname)
             .argv;
-let tar = require('tar');            
+let tar = require('tar');
+let restUrl = 'http://localhost:8000';            
 
 socket.connect(port, host);
 socket.on('connect', function() {
     console.log('client connected');
 
     let options = {
-        url: 'http://localhost:8000/',
+        url: `${restUrl}/`,
         headers: {'Accept': 'application/x-gtar'}
     }
     var destination = tar.Extract({ path: '.' });
-    request(options, 'http://localhost:8000/')
+    request(options, `${restUrl}/`)
         .pipe(destination);
 
     socket.on('message', function(message) {
@@ -45,7 +46,7 @@ socket.on('connect', function() {
             }
         }else{
             if (message.action === 'add'){
-                let url = `http://localhost:8000${message.path}`;
+                let url = `${restUrl}${message.path}`;
                 console.log('url:'+ url);
                 request({
                     url: url,
