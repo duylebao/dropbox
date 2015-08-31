@@ -4,7 +4,9 @@
   "description": "dropbox project week1",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --exec babel-node -- --optional strict --stage 1 -- index.js",
+    "client": "nodemon --exec babel-node -- --optional strict --stage 1 -- client/client.js"  
   },
   "author": "",
   "license": "ISC",

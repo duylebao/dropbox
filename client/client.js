@@ -29,11 +29,11 @@ socket.on('connect', function() {
             }
             let destination = tar.Extract({ path: dir });
             request(options, `${restUrl}/`)
-                .pipe(destination);
+                .pipe(destination);                
         }
     });
 
-    socket.on('message', function(message) {
+    socket.on('message', function(message) { 
         if (message.type === 'dir'){
             if (message.action === 'add'){
                 File.createDirectory(cdir, message.path, function(err){
@@ -53,7 +53,7 @@ socket.on('connect', function() {
                 });
             }
         }else{
-            if (message.action === 'add'){
+            if (message.action === 'add' || message.action === 'change'){
                 let url = `${restUrl}${message.path}`;
                 console.log('url:'+ url);
                 request({

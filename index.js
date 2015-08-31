@@ -14,7 +14,7 @@ tcpServer.listen(8001);
 tcpServer.on('connection', function(socket) {
     socket = new JsonSocket(socket);
     chokidar.watch(dir, {ignored: /[\/\\]\./})
-        .on('all', (event, path) => {
+        .on('all', (event, path) => {  
             let isDir = event.indexOf("Dir") != -1;
             let action = event.replace('Dir','').replace('unlink','delete');
             let message = {
