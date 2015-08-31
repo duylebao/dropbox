@@ -9,34 +9,42 @@ let File = require( '../file');
 let path = require('path');
 let {dir} = require('yargs')
             .default('dir', __dirname)
-            .argv;
+            .argv;         
 let tar = require('tar');
 let restUrl = 'http://localhost:8000';            
+let sourceDir = 'source';
+let cdir = path.join(dir, sourceDir); 
 
 socket.connect(port, host);
 socket.on('connect', function() {
     console.log('client connected');
 
-    let options = {
-        url: `${restUrl}/`,
-        headers: {'Accept': 'application/x-gtar'}
-    }
-    var destination = tar.Extract({ path: '.' });
-    request(options, `${restUrl}/`)
-        .pipe(destination);
+    File.remove(dir, sourceDir, function(err){
+        if (err){
+            console.log(err.message);
+        }else{
+            let options = {
+                url: `${restUrl}/`,
+                headers: {'Accept': 'application/x-gtar'}
+            }
+            let destination = tar.Extract({ path: dir });
+            request(options, `${restUrl}/`)
+                .pipe(destination);
+        }
+    });
 
     socket.on('message', function(message) {
         if (message.type === 'dir'){
             if (message.action === 'add'){
-                File.mkdir(`${message.path}/`, function(err){
+                File.createDirectory(cdir, message.path, function(err){
                     if (err){
                         console.log(err.message);
                     }else{
-                        console.log(`Directory ${message.path}/ created.`);
+                        console.log(`Directory ${message.path} created.`);
                     }
                 });
             }else if (message.action === 'delete'){
-                File.remove(`${message.path}/`, function(err){
+                File.remove(cdir, message.path, function(err){
                     if (err){
                         console.log(err.message);
                     }else{
@@ -55,9 +63,9 @@ socket.on('connect', function() {
                     if(error) {
                         console.log(error);
                     } else {
-                        File.create(message.path, body, function(err){
+                        File.createFile(cdir, message.path, body, function(err){
                             if (err){
-                                File.replaceFile(message.path, body, function(err){
+                                File.replaceFile(cdir, message.path, body, function(err){
                                     if (err){
                                         console.log('cannot replace file', message.path);
                                     }else{
@@ -71,7 +79,7 @@ socket.on('connect', function() {
                     }
                 });
             }else if (message.action === 'delete'){
-                File.remove(`${message.path}`, function(err){
+                File.remove(cdir, message.path, function(err){
                     if (err){
                         console.log(err.message);
                     }else{
