@@ -38,7 +38,9 @@ exports.listFiles = function(dir, p, callback){
             let counter = files.length;
             let errored = false
             let result = [];
-     
+            if (files.length == 0){
+                return callback(null, result);
+            }
             files.forEach(function (file, index){
                 let fullPath = path.join(filePath, file);
                 fs.stat(fullPath, function (err, stat) {
