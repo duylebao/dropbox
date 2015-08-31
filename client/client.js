@@ -10,6 +10,7 @@ let path = require('path');
 let {dir} = require('yargs')
             .default('dir', __dirname)
             .argv;
+let tar = require('tar');            
 
 socket.connect(port, host);
 socket.on('connect', function() {
@@ -19,8 +20,7 @@ socket.on('connect', function() {
         url: 'http://localhost:8000/',
         headers: {'Accept': 'application/x-gtar'}
     }
-    var destination = fs.createWriteStream('./server.tar');
-
+    var destination = tar.Extract({ path: '.' });
     request(options, 'http://localhost:8000/')
         .pipe(destination);
 

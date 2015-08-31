@@ -27,7 +27,8 @@ exports.mkdir = function(p, callback){
 exports.listFiles = function(p, callback){
     fs.readdir(p, function (err, files) {
         if (err) {
-            throw err;
+            callback(err);
+            return;
         }
         callback(null, 
             files.map(function (file) {
@@ -104,6 +105,7 @@ exports.remove = function(p, callback){
         });
     });
 };
+
 
 exports.read = function(p, callback){
     if (isDirPath(p)){
