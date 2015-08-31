@@ -24,19 +24,41 @@ exports.createDirectory = function(dir, p, callback){
     });
 };
 
-exports.listFiles = function(dir, callback){
-    fs.readdir(dir, function (err, files) {
-        if (err) {
-            callback(err);
-            return;
+exports.listFiles = function(dir, p, callback){
+    let filePath = path.join(dir, p);
+    fs.exists(filePath, function(exists){
+        if (!exists){
+            console.log('not exist');
+            return callback(new Error(`directory ${p} does not exist`));
         }
-        callback(null, 
-            files.map(function (file) {
-                return file;
-            }).filter(function (file) {
-                return fs.statSync(path.join(dir, file)).isFile();
-            }));
-    });
+        fs.readdir(filePath, function (err, files) {
+            if (err){
+                return callback(err);
+            }
+            let counter = files.length;
+            let errored = false
+            let result = [];
+     
+            files.forEach(function (file, index){
+                let fullPath = path.join(filePath, file);
+                fs.stat(fullPath, function (err, stat) {
+                    if (errored){
+                        return;
+                    }
+                    if (err){
+                        errored = true;
+                        return callback(err);
+                    }
+                    if (!stat.isDirectory()){
+                        result.push(file);
+                    }
+                    if (--counter == 0) {
+                        callback(null, result);
+                    }
+                });
+            });
+        });          
+    });  
 };
 
 exports.createArchive = function(dir, p, format, callback){

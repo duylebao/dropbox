@@ -69,8 +69,12 @@ server.route({
             });
         }else{
             if (isDir){
-                File.listFiles(dir, function(err, data){
-                    reply(data);
+                File.listFiles(dir, path, function(err, data){
+                    if (err){
+                        reply(err.message);
+                    }else{
+                        reply( JSON.stringify(data));
+                    }
                 });
             }else{
                 File.readFile(dir, path, function(err, data){
